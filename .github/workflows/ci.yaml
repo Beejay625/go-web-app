@@ -75,13 +75,10 @@ jobs:
           git config user.name "Beejay625"
 
       # Step 7: Commit and push changes to the repository
-      - name: Configure Git
-        run: |
-          git config --global user.name "${{ github.actor }}"
-          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      
 
       - name: Commit and push changes
         run: |
           git add .
           git commit -m "Update Helm chart values with new image tag"
-          git push https://${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
+          git push https://${{ secrets.ACCESS_TOKEN }}@github.com/${{ github.repository }}.git HEAD:${{ github.ref }}
