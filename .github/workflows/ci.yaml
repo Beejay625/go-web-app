@@ -1,5 +1,7 @@
-  #writein comment step for cicd 
+# GitHub Actions workflow for Continuous Integration and Continuous Deployment (CI/CD)
 name: cicd
+
+# Trigger the workflow on push to main branch and pull requests to main and dev branches
 on:
   push:
     branches:
@@ -14,26 +16,31 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: checkout code
+      # Step 1: Check out the repository code
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of the personal access token.
-          fetch-depth: 0 # fetch all history for all branches and tags
-      - name: set up go
+          persist-credentials: false # Use personal access token instead of GITHUB_TOKEN
+          fetch-depth: 0 # Fetch all history for all branches and tags
+      
+      # Step 2: Set up Go environment
+      - name: Get Go version from Dockerfile
+        id: get-go-version
+        run: |
+          GO_VERSION=$(sed -n 's/FROM golang:\([0-9.]*\).*/\1/p' Dockerfile)
+          echo "version=$GO_VERSION" >> $GITHUB_OUTPUT
+      - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          # Specify the Go version for the workflow
-          # Use the Dockerfile as a reference for consistency
-          go-version-file: 'Dockerfile'
-          # Dynamically set the go-version by extracting it from the Dockerfile
-          # Use grep to find the Go version specified after 'FROM golang:'
-          go-version: |
-            $(grep -oP 'FROM golang:\K[0-9.]+' Dockerfile)    
-      - name: build the code
+          go-version: ${{ steps.get-go-version.outputs.version }}
+          
+      # Step 3: Build the Go code
+      - name: Build the code
         run: |
           if go build -v ./...; then
             echo "Build successful"
@@ -41,35 +48,26 @@ jobs:
             echo "Build failed"
             exit 1
           fi
-      - name: push the docker image to the docker hub
+
+      # Step 4: Build and push Docker image
+      - name: Push Docker image to Docker Hub
         run: |
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker build -t ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }} .
           docker push ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }}
-      # using sed update the helm values.yaml file with the new image tag
-      - name: update helm values 
+
+      # Step 5: Update Helm chart values with new image tag
+      - name: Update Helm values 
         run: |
           sed -i 's|tag:.*|tag: "${{ github.ref_name }}-${{ github.sha }}"|' go-web-app-chart/values.yaml
-      - name: login git with access token and push the helm chart to the git repo
+
+      # Step 6: Authenticate Git with access token (incomplete command)
+      - name: Login to Git with access token
         run: |
-           git lo
-      # [...] --> steps with actions or commands updating repository files
+           git lo  # Note: This command is incomplete and needs to be fixed
+
+      # Step 7: Commit and push changes to the repository
       - uses: GuillaumeFalourd/git-commit-push@v1.3
         with:
           commit_message: update helm chart with new image tag
           target_branch: main
-          
-         
-        
-
-      
-      
-# fisrt step is to checkout the code
-# second step is to set up go
-# third step is to build the code
-# fourth step is to test the code
-# fifth step is to build the docker image
-# sixth step is to push the docker image to the docker hub
-# seventh step is to deploy the docker image to the kubernetes cluster
-# eighth step is to run the application
-# ninth step is to test the application
