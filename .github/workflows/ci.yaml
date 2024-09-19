@@ -25,15 +25,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          persist-credentials: false # Use personal access token instead of GITHUB_TOKEN
-          fetch-depth: 0 # Fetch all history for all branches and tags
-      
+          persist-credentials: false # Use personal access token instead of GITHUB_TOKEN for better security
+          fetch-depth: 0 # Fetch all history for all branches and tags to ensure full repository context
+
       # Step 2: Set up Go environment
       - name: Get Go version from Dockerfile
         id: get-go-version
         run: |
+          # Extract Go version from Dockerfile to ensure consistency
           GO_VERSION=$(sed -n 's/FROM golang:\([0-9.]*\).*/\1/p' Dockerfile)
           echo "version=$GO_VERSION" >> $GITHUB_OUTPUT
+
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
@@ -42,6 +44,7 @@ jobs:
       # Step 3: Build the Go code
       - name: Build the code
         run: |
+          # Attempt to build the Go code and provide appropriate feedback
           if go build -v ./...; then
             echo "Build successful"
           else
@@ -52,21 +55,20 @@ jobs:
       # Step 4: Build and push Docker image
       - name: Push Docker image to Docker Hub
         run: |
+          # Log in to Docker Hub using secrets
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          # Build Docker image with a tag that includes branch name and commit SHA
           docker build -t ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }} .
+          # Push the newly built image to Docker Hub
           docker push ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }}
 
       # Step 5: Update Helm chart values with new image tag
       - name: Update Helm values 
         run: |
+          # Update the image tag in the Helm chart values file
           sed -i 's|tag:.*|tag: "${{ github.ref_name }}-${{ github.sha }}"|' go-web-app-chart/values.yaml
 
-      # Step 6: Authenticate Git with access token (incomplete command)
-      - name: Login to Git with access token
-        run: |
-           git lo  # Note: This command is incomplete and needs to be fixed
-
-      # Step 7: Commit and push changes to the repository
+      # Step 6: Commit and push changes to the repository
       - uses: GuillaumeFalourd/git-commit-push@v1.3
         with:
           commit_message: update helm chart with new image tag
