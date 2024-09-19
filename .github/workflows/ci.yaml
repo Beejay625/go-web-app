@@ -72,10 +72,9 @@ jobs:
       - name: Push changes
         uses: zakiego/just-git-push@main
         with:
-          USERNAME: "github-actions[bot]"
-          EMAIL: "41898282+github-actions[bot]@users.noreply.github.com"
-          COMMIT_MESSAGE: "This is an automated commit by GitHub Actions."
-          BRANCH: ${{ github.ref_name }}
-          REPOSITORY: ${{ github.repository }}
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
-          
+          username: "Beejay625"
+          email: "41898282+github-actions[bot]@users.noreply.github.com"
+          commit-message: "Update Helm chart values with new image tag"
+          branch: ${{ github.ref_name }}
+          repository: ${{ github.repository }}
+          github-token: ${{ secrets.ACCESS_TOKEN }}
