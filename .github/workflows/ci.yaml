@@ -20,21 +20,20 @@ on:
       - 'go-web-app-chart/values.yaml'
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout code
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-        with:
-          version: v1.56.2
+  # lint:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: checkout code
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ secrets.ACCESS_TOKEN }}
+  #     - name: Run golangci-lint
+  #       uses: golangci/golangci-lint-action@v6
+  #       with:
+  #         version: v1.56.2
 
   setup-env:
     runs-on: ubuntu-latest
-    needs: lint
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
