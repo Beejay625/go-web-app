@@ -68,12 +68,18 @@ jobs:
           # Update the image tag in the Helm chart values file
           sed -i 's|tag:.*|tag: "${{ github.ref_name }}-${{ github.sha }}"|' go-web-app-chart/values.yaml
 
-      # Step 6: Commit and push changes to the repository
+      # Step 6: Configure Git and commit changes
+      - name: Configure Git
+        run: |
+          git config user.email "seyi.i@blkat.io"
+          git config user.name "Beejay625"
+
+      # Step 7: Commit and push changes to the repository
       - name: Push changes
         uses: zakiego/just-git-push@main
         with:
-          username: "Beejay625"
-          email: "41898282+github-actions[bot]@users.noreply.github.com"
+          username: ${{ github.actor }}
+          email: ${{ github.actor }}@users.noreply.github.com
           commit-message: "Update Helm chart values with new image tag"
           branch: ${{ github.ref_name }}
           repository: ${{ github.repository }}
