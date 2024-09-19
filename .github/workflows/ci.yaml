@@ -1,14 +1,75 @@
-name: SSS
-on: 
+  #writein comment step for cicd 
+name: cicd
+on:
   push:
     branches:
       - main
-    paths_ignore:
+    paths-ignore:
       - '**/*.md'
       - '**/*.txt'
-  
+  pull_request:
+    branches:
+      - main
+      - dev 
+    paths-ignore:
+      - '**/*.md'
+      - '**/*.txt'
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        ste
-            
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of the personal access token.
+          fetch-depth: 0 # fetch all history for all branches and tags
+      - name: set up go
+        uses: actions/setup-go@v4
+        with:
+          # Specify the Go version for the workflow
+          # Use the Dockerfile as a reference for consistency
+          go-version-file: 'Dockerfile'
+          # Dynamically set the go-version by extracting it from the Dockerfile
+          # Use grep to find the Go version specified after 'FROM golang:'
+          go-version: |
+            $(grep -oP 'FROM golang:\K[0-9.]+' Dockerfile)    
+      - name: build the code
+        run: |
+          if go build -v ./...; then
+            echo "Build successful"
+          else
+            echo "Build failed"
+            exit 1
+          fi
+      - name: push the docker image to the docker hub
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }} .
+          docker push ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }}
+      # using sed update the helm values.yaml file with the new image tag
+      - name: update helm values 
+        run: |
+          sed -i 's|tag:.*|tag: "${{ github.ref_name }}-${{ github.sha }}"|' go-web-app-chart/values.yaml
+      - name: login git with access token and push the helm chart to the git repo
+        run: |
+           git lo
+      # [...] --> steps with actions or commands updating repository files
+      - uses: GuillaumeFalourd/git-commit-push@v1.3
+        with:
+          commit_message: update helm chart with new image tag
+          target_branch: main
+          
+         
+        
+
+      
+      
+# fisrt step is to checkout the code
+# second step is to set up go
+# third step is to build the code
+# fourth step is to test the code
+# fifth step is to build the docker image
+# sixth step is to push the docker image to the docker hub
+# seventh step is to deploy the docker image to the kubernetes cluster
+# eighth step is to run the application
+# ninth step is to test the application
