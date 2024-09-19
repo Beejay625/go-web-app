@@ -80,7 +80,7 @@ jobs:
         with:
           username: ${{ github.actor }}
           email: ${{ github.actor }}@users.noreply.github.com
-          commit-message: "Update Helm chart values with new image tag"
+          COMMIT_MESSAGE: "Update Helm chart values with new image tag"
           branch: ${{ github.ref_name }}
           repository: ${{ github.repository }}
           github-token: ${{ secrets.ACCESS_TOKEN }}
