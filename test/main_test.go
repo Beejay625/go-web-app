@@ -1,11 +1,13 @@
 // Test the main function
 
-package main
+package main_test
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	main "github.com/iam-veeramalla/go-web-app-devops"
 )
 
 func TestMain(t *testing.T) {
@@ -15,7 +17,7 @@ func TestMain(t *testing.T) {
 	}
 
 	rr := httptest.NewRecorder()
-	handler := http.HandlerFunc(homePage)
+	handler := http.HandlerFunc(main.HomePage)
 
 	handler.ServeHTTP(rr, req)
 

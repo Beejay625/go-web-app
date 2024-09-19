@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func homePage(w http.ResponseWriter, r *http.Request) {
+func HomePage(w http.ResponseWriter, r *http.Request) {
 	// Render the home html page from static folder
 	http.ServeFile(w, r, "static/home.html")
 }
@@ -27,7 +27,7 @@ func contactPage(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	http.HandleFunc("/home", homePage)
+	http.HandleFunc("/home", HomePage)
 	http.HandleFunc("/courses", coursePage)
 	http.HandleFunc("/about", aboutPage)
 	http.HandleFunc("/contact", contactPage)
