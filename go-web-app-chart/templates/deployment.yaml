@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: sheziidowu/my-web-app:{{ .Values.image.tag }}
+          image: sheziidowu/go-web-app:{{ .Values.image.tag }}
           ports:
             - containerPort: 8080
     
