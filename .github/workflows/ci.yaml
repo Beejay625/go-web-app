@@ -9,6 +9,7 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
+      - 'go-web-app-chart/values.yaml'
   pull_request:
     branches:
       - main
@@ -16,6 +17,7 @@ on:
     paths-ignore:
       - '**/*.md'
       - '**/*.txt'
+      - 'go-web-app-chart/values.yaml'
 
 jobs:
   build:
@@ -27,8 +29,6 @@ jobs:
         with:
           token: ${{ secrets.ACCESS_TOKEN }}
          
-          
-
       # Step 2: Set up Go environment
       - name: Get Go version from Dockerfile
         id: get-go-version
@@ -76,12 +76,8 @@ jobs:
           git config user.name "Beejay625"
 
       # Step 7: Commit and push changes to the repository
-      
-
       - name: Commit and push changes
         run: |
-          git config --global user.email "seyi.i@blkat.io"
-          git config --global user.name "Beejay625"
-          git add .
-          git commit -m "Update Helm chart values with new image tag"
-          git push 
+          git add go-web-app-chart/values.yaml
+          git commit -m "Update Helm chart values with new image tag [skip ci]"
+          git push origin ${{ github.ref_name }}
