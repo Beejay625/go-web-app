@@ -74,5 +74,5 @@ jobs:
           commit_message: update helm chart with new image tag
           target_branch: main
           access_token: ${{ github.token }}
-          remote_repository: https://github.com/Beejay625/go-web-app.git
+          remote_repository: https://github.com/Beejay625/go-web-app
           
