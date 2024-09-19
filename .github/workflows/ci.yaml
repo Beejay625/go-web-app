@@ -20,28 +20,46 @@ on:
       - 'go-web-app-chart/values.yaml'
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: lint code
+        run: |
+          golangci-lint run
+
+  setup-env:
+    runs-on: ubuntu-latest
+    needs: lint
     steps:
       # Step 1: Check out the repository code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.ACCESS_TOKEN }}
-         
-      # Step 2: Set up Go environment
+          token: ${{ secrets.ACCESS_TOKEN }}  
       - name: Get Go version from Dockerfile
         id: get-go-version
         run: |
           # Extract Go version from Dockerfile to ensure consistency
           GO_VERSION=$(sed -n 's/FROM golang:\([0-9.]*\).*/\1/p' Dockerfile)
           echo "version=$GO_VERSION" >> $GITHUB_OUTPUT
-
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: ${{ steps.get-go-version.outputs.version }}
-          
+          go-version: ${{ steps.get-go-version.outputs.version }}     
+
+  build:
+    runs-on: ubuntu-latest
+    needs: setup-env
+    steps:
+      # Step 1: Check out the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}    
       # Step 3: Build the Go code
       - name: Build the code
         run: |
@@ -53,6 +71,10 @@ jobs:
             exit 1
           fi
 
+  push_code_to_docker_hub:
+    runs-on: ubuntu-latest
+    needs: setup-env
+    steps:
       # Step 4: Build and push Docker image
       - name: Push Docker image to Docker Hub
         run: |
@@ -62,22 +84,22 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }} .
           # Push the newly built image to Docker Hub
           docker push ${{ secrets.DOCKER_USERNAME }}/go-web-app:${{ github.ref_name }}-${{ github.sha }}
-
-      # Step 5: Update Helm chart values with new image tag
-      - name: Update Helm values 
+  update-helm-values:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ACCESS_TOKEN }}
+      - name: update helm values
         run: |
           # Update the image tag in the Helm chart values file
           sed -i 's|tag:.*|tag: "${{ github.ref_name }}-${{ github.sha }}"|' go-web-app-chart/values.yaml
-
-      # Step 6: Configure Git and commit changes
-      - name: Configure Git
+      - name: commit and push helm values
         run: |
-          git config user.email "seyi.i@blkat.io"
-          git config user.name "Beejay625"
-
-      # Step 7: Commit and push changes to the repository
-      - name: Commit and push changes
-        run: |
+          git config --global user.email "seyi.i@blkat.io"
+          git config --global user.name "Beejay625"
           git add go-web-app-chart/values.yaml
-          git commit -m "Update Helm chart values with new image tag [skip ci]"
-          git push origin ${{ github.ref_name }}
+          git commit -m "Update Helm chart values with new image tag"
+          git push
