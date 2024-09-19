@@ -1,0 +1,14 @@
+name: SSS
+on: 
+  push:
+    branches:
+      - main
+    paths_ignore:
+      - '**/*.md'
+      - '**/*.txt'
+  
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        ste
+            
